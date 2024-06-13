@@ -139,6 +139,15 @@ func (c *Client[T]) Get(key string) (T, bool) {
 	return val, ok && !ignore
 }
 
+// GetWithMetadata retrieves a single value from the cache along with metadata.
+// The metadata includes whether the value exists, should be ignored, or should be refreshed.
+func (c *Client[T]) GetWithMetadata(key string) (value T, exists, ignore, refresh bool) {
+	shard := c.getShard(key)
+	val, ok, ignore, refresh := shard.get(key)
+	c.reportCacheHits(ok, ignore, refresh)
+	return val, ok, ignore, refresh
+}
+
 // GetMany retrieves multiple values from the cache.
 func (c *Client[T]) GetMany(keys []string) map[string]T {
 	records := make(map[string]T, len(keys))
